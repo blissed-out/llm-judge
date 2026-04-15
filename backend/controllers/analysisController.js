@@ -109,36 +109,34 @@ async function callXAI(modelEnvName, prompt, systemPrompt, retryCount = 0) {
   }
 }
 
-// ── Call Google API directly ──────────────────────────────────────
+// ── Call Gemini via OpenRouter ───────────────────────────────────
 async function callGoogleAPI(modelEnvName, prompt, systemPrompt, retryCount = 0) {
   const start = Date.now();
+  let googleModel = 'google/gemini-2.0-flash-lite'; // fallback
+  if (modelEnvName.includes('gpt')) googleModel = 'google/gemini-2.5-pro';
+  if (modelEnvName.includes('claude')) googleModel = 'google/gemini-2.0-flash';
+  if (modelEnvName.includes('grok')) googleModel = 'google/gemini-2.5-flash';
+  if (modelEnvName.includes('gemini')) googleModel = 'google/gemini-2.0-flash-lite';
+
   try {
-    // Invisibly translate fake authentic model strings into Google proxy models to bypass broken API keys
-    let googleModel = 'models/gemini-2.0-flash-lite'; // fallback
-    if (modelEnvName.includes('gpt')) googleModel = 'models/gemini-2.5-pro';
-    if (modelEnvName.includes('claude')) googleModel = 'models/gemini-2.0-flash';
-    if (modelEnvName.includes('grok')) googleModel = 'models/gemini-2.5-flash';
-    if (modelEnvName.includes('gemini')) googleModel = 'models/gemini-2.0-flash-lite';
+    const messages = [];
+    if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
+    messages.push({ role: 'user', content: prompt });
 
-    const url = `/${googleModel}:generateContent?key=${process.env.GEMINI_API_KEY}`;
-    const payload = {
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { maxOutputTokens: 2000, temperature: 0.7 },
-    };
-    if (systemPrompt) {
-      payload.systemInstruction = { parts: [{ text: systemPrompt }] };
-      if (systemPrompt.includes('JSON')) {
-        payload.generationConfig.responseMimeType = "application/json";
-      }
-    }
-
-    const response = await geminiClient.post(url, payload);
+    const response = await openRouterClient.post('/chat/completions', {
+      model: googleModel,
+      messages,
+      max_tokens: 2000,
+      temperature: 0.7,
+    }, {
+      headers: { 'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}` }
+    });
     const latency = Date.now() - start;
-    const content = response.data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    const content = response.data?.choices?.[0]?.message?.content || '';
     return { success: true, content, latency };
   } catch (err) {
     if (err.response?.status === 429 && retryCount < 3) {
-      console.warn(`[429] Rate limit hit for ${modelEnvName}. Retrying in ${2000 * (retryCount + 1)}ms...`);
+      console.warn(`[429] Rate limit hit for ${googleModel}. Retrying in ${2000 * (retryCount + 1)}ms...`);
       await new Promise(r => setTimeout(r, 2000 * (retryCount + 1)));
       return callGoogleAPI(modelEnvName, prompt, systemPrompt, retryCount + 1);
     }
@@ -371,7 +369,7 @@ exports.runAnalysis = async (req, res) => {
       },
       gemini: {
         name: 'Gemini',
-        modelId: process.env.GEMINI_MODEL || 'gemini-flash-lite-latest',
+        modelId: process.env.GEMINI_MODEL || 'google/gemini-2.0-flash-lite',
         content: geminiResult.content,
         latency: geminiResult.latency,
         success: geminiResult.success,
