@@ -94,7 +94,7 @@ async function callXAI(modelEnvName, prompt, systemPrompt, retryCount = 0) {
       max_tokens: 2000,
       temperature: 0.7,
     }, {
-      headers: { 'Authorization': `Bearer ${process.env.XAI_API_KEY}` }
+      headers: { 'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}` }
     });
     const latency = Date.now() - start;
     const content = response.data?.choices?.[0]?.message?.content || '';
