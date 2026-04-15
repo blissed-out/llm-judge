@@ -345,14 +345,11 @@ exports.runAnalysis = async (req, res) => {
     await db.prepare(
       'INSERT INTO history (userId, prompt, modelsData, judgeData, createdAt) VALUES (?, ?, ?, ?, ?)'
     ).run(
-      'INSERT INTO history (userId, prompt, modelsData, judgeData, createdAt) VALUES (?, ?, ?, ?, ?)',
-      [
-        req.user.id,
-        prompt.trim(),
-        JSON.stringify(modelResults),
-        JSON.stringify(judgeData),
-        new Date().toISOString()
-      ]
+      req.user.id,
+      prompt.trim(),
+      JSON.stringify(modelResults),
+      JSON.stringify(judgeData),
+      new Date().toISOString()
     );
   } catch (err) {
     console.error('Failed to save history:', err);
