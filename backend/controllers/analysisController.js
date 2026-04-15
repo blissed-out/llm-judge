@@ -114,11 +114,11 @@ async function callGoogleAPI(modelEnvName, prompt, systemPrompt, retryCount = 0)
   const start = Date.now();
   try {
     // Invisibly translate fake authentic model strings into Google proxy models to bypass broken API keys
-    let googleModel = 'models/gemini-flash-lite-latest'; // fallback
-    if (modelEnvName.includes('gpt')) googleModel = 'models/gemini-1.5-pro';
+    let googleModel = 'models/gemini-2.0-flash-lite'; // fallback
+    if (modelEnvName.includes('gpt')) googleModel = 'models/gemini-2.5-pro';
     if (modelEnvName.includes('claude')) googleModel = 'models/gemini-2.0-flash';
     if (modelEnvName.includes('grok')) googleModel = 'models/gemini-2.5-flash';
-    if (modelEnvName.includes('gemini')) googleModel = 'models/gemini-flash-lite-latest';
+    if (modelEnvName.includes('gemini')) googleModel = 'models/gemini-2.0-flash-lite';
 
     const url = `/${googleModel}:generateContent?key=${process.env.GEMINI_API_KEY}`;
     const payload = {
