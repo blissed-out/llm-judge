@@ -112,11 +112,11 @@ async function callXAI(modelEnvName, prompt, systemPrompt, retryCount = 0) {
 // ── Call Gemini via OpenRouter ───────────────────────────────────
 async function callGoogleAPI(modelEnvName, prompt, systemPrompt, retryCount = 0) {
   const start = Date.now();
-  let googleModel = 'google/gemini-2.0-flash-lite'; // fallback
+  let googleModel = 'google/gemini-3.1-flash-lite-preview'; // fallback
   if (modelEnvName.includes('gpt')) googleModel = 'google/gemini-2.5-pro';
   if (modelEnvName.includes('claude')) googleModel = 'google/gemini-2.0-flash';
   if (modelEnvName.includes('grok')) googleModel = 'google/gemini-2.5-flash';
-  if (modelEnvName.includes('gemini')) googleModel = 'google/gemini-2.0-flash-lite';
+  if (modelEnvName.includes('gemini')) googleModel = 'google/gemini-3.1-flash-lite-preview';
 
   try {
     const messages = [];
@@ -128,6 +128,7 @@ async function callGoogleAPI(modelEnvName, prompt, systemPrompt, retryCount = 0)
       messages,
       max_tokens: 2000,
       temperature: 0.7,
+      reasoning: { effort: "minimal" },
     }, {
       headers: { 'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}` }
     });
@@ -369,7 +370,7 @@ exports.runAnalysis = async (req, res) => {
       },
       gemini: {
         name: 'Gemini',
-        modelId: process.env.GEMINI_MODEL || 'google/gemini-2.0-flash-lite',
+        modelId: process.env.GEMINI_MODEL || 'google/gemini-3.1-flash-lite-preview',
         content: geminiResult.content,
         latency: geminiResult.latency,
         success: geminiResult.success,
