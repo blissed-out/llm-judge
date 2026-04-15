@@ -138,9 +138,9 @@ async function callGoogleAPI(modelEnvName, prompt, systemPrompt, retryCount = 0)
     return { success: true, content, latency };
   } catch (err) {
     if (err.response?.status === 429 && retryCount < 3) {
-      console.warn(`[429] Rate limit hit for ${modelName}. Retrying in ${2000 * (retryCount + 1)}ms...`);
+      console.warn(`[429] Rate limit hit for ${modelEnvName}. Retrying in ${2000 * (retryCount + 1)}ms...`);
       await new Promise(r => setTimeout(r, 2000 * (retryCount + 1)));
-      return callGoogleAPI(modelName, prompt, systemPrompt, retryCount + 1);
+      return callGoogleAPI(modelEnvName, prompt, systemPrompt, retryCount + 1);
     }
     const latency = Date.now() - start;
     return { success: false, content: '', error: 'API Error: ' + err.message, latency };
