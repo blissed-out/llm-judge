@@ -342,7 +342,9 @@ exports.runAnalysis = async (req, res) => {
   // ── Save to history ───────────────────────────────────────
   try {
     const db = await getDb();
-    await db.run(
+    await db.prepare(
+      'INSERT INTO history (userId, prompt, modelsData, judgeData, createdAt) VALUES (?, ?, ?, ?, ?)'
+    ).run(
       'INSERT INTO history (userId, prompt, modelsData, judgeData, createdAt) VALUES (?, ?, ?, ?, ?)',
       [
         req.user.id,
@@ -400,7 +402,7 @@ exports.runAnalysis = async (req, res) => {
 exports.getHistory = async (req, res) => {
   try {
     const db = await getDb();
-    const history = await db.all('SELECT * FROM history WHERE userId = ? ORDER BY id DESC', req.user.id);
+    const history = await db.prepare('SELECT * FROM history WHERE userId = ? ORDER BY id DESC').all(req.user.id);
 
     const formattedHistory = history.map(item => ({
       ...item,
